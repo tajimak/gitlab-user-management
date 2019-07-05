@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import gitlab
+
+
+def add_groupmember(api, csvfile):
+    all_group = api.groups.list()
+    with open(csvfile, 'r', encoding='utf-8') as cf:
+        csvreader = csv.reader(cf, delimiter=',', quotechar='"')
+        for row in csvreader:
+            user = api.users.list(username=row[0])[0]
+            group = [g for g in all_group if g.full_path == row[1]][0]
+            params = {}
+            params['user_id'] = user.id
+            params['access_level'] = row[2]
+            group.members.create(params)
+            print('User:{0} has joined in {1}'.format(user.name, group.name))
+
+
+if __name__ == "__main__":
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--gitlab')
+    parser.add_argument('--csvfile')
+    args=parser.parse_args()
+
+    api=gitlab.Gitlab.from_config(gitlab_id=args.gitlab)
+    # if use this in proxy environment, set session.proxy.
+    # gl.session.proxies = {
+    #     'http': 'http://yourproxy.com:9090',
+    #     'https': 'https://yourproxy.com:8443'
+    # }
+
+    add_groupmember(api=api, csvfile=args.csvfile)
