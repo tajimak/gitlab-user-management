@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import argparse
+import gitlab
+
+def export_user(api, csvFile):
+    if (csvFile is None):
+        csvFile = 'users.csv'
+
+    file = open(csvFile, 'w', encoding="utf-8")
+
+    users = api.users.list(order_by='id',sort='asc',all=True)
+    for user in users:
+        out = '{},"{}","{}"'.format(user.email, user.username, user.name)
+        print(out)
+        if (file is not None):
+            file.write(out + '\n')
+    
+    if (file is not None):
+        file.close()
+
+
+def export_user_in_group(api, groupName, csvFile):
+    if (csvFile is None):
+        csvFile = 'users-' + groupName + '.csv'
+
+    userFile = open(csvFile, 'w', encoding='utf-8')
+
+    groups = api.groups.list(search=groupName)
+    for group in groups:
+        print('Group[{}]: {}, "{}"'.format(group.id, group.name, group.full_path))
+        groupFile = open('groupmembers-' + group.path + '.csv', 'w', encoding='utf-8')
+
+        for member in group.members.list(all=True):
+            groupOut = '{},"{}",{}'.format(member.username, group.full_path, member.access_level)
+            print(groupOut)
+            groupFile.write(groupOut + '\n')
+
+            if (userFile is not None):
+                user = api.users.get(member.id)
+                userOut = '{},"{}","{}"'.format(user.email, user.username, user.name)
+                # print(userOut)
+                userFile.write(userOut + '\n')
+        groupFile.close()
+
+    if (userFile is not None):
+        userFile.close()
+
+
+if __name__ == "__main__":
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--id')
+    parser.add_argument('--csvfile')
+    parser.add_argument('--group')
+    args=parser.parse_args()
+
+    api=gitlab.Gitlab.from_config(gitlab_id=args.id)
+    # if use this in proxy environment, set session.proxy.
+    # gl.session.proxies = {
+    #     'http': 'http://yourproxy.com:9090',
+    #     'https': 'https://yourproxy.com:8443'
+    # }
+
+    if (args.group is None):
+        export_user(api=api, csvFile=args.csvfile)
+    else:
+        export_user_in_group(api=api, groupName=args.group, csvFile=args.csvfile)
