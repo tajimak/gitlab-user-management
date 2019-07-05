@@ -6,8 +6,8 @@ import gitlab
 
 
 def add_user(api, csvfile):
-    with open(csvfile, 'r') as cf:
-        csvreader = csv.reader(cf, delimiter=',', quotechar='|')
+    with open(csvfile, 'r', encoding='utf-8') as cf:
+        csvreader = csv.reader(cf, delimiter=',', quotechar='"')
         for row in csvreader:
             params = {}
             params['email'] = row[0]
@@ -20,8 +20,8 @@ def add_user(api, csvfile):
 
 def add_user_to_group(api, csvfile):
     all_group = api.groups.list()
-    with open(csvfile, 'r') as cf:
-        csvreader = csv.reader(cf, delimiter=',', quotechar='|')
+    with open(csvfile, 'r', encoding='utf-8') as cf:
+        csvreader = csv.reader(cf, delimiter=',', quotechar='"')
         for row in csvreader:
             user = api.users.list(username=row[0])[0]
             for i in range(1, len(row)):
@@ -35,11 +35,12 @@ def add_user_to_group(api, csvfile):
 
 if __name__ == "__main__":
     parser=argparse.ArgumentParser()
+    parser.add_argument('--gitlab')
     parser.add_argument('--csvfile')
     parser.add_argument('--group', action='store_true')
     args=parser.parse_args()
 
-    api=gitlab.Gitlab.from_config(config_files=['./python-gitlab.cfg'])
+    api=gitlab.Gitlab.from_config(gitlab_id=args.gitlab)
     # if use this in proxy environment, set session.proxy.
     # gl.session.proxies = {
     #     'http': 'http://yourproxy.com:9090',
