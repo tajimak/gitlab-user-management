@@ -49,12 +49,12 @@ def export_user_in_group(api, groupName, csvFile):
 
 if __name__ == "__main__":
     parser=argparse.ArgumentParser()
-    parser.add_argument('--id')
+    parser.add_argument('--gitlab')
     parser.add_argument('--csvfile')
     parser.add_argument('--group')
     args=parser.parse_args()
 
-    api=gitlab.Gitlab.from_config(gitlab_id=args.id)
+    api=gitlab.Gitlab.from_config(gitlab_id=args.gitlab)
     # if use this in proxy environment, set session.proxy.
     # gl.session.proxies = {
     #     'http': 'http://yourproxy.com:9090',
